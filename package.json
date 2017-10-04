@@ -1,0 +1,22 @@
+{
+  "name": "testcoin",
+  "version": "1.0.0",
+  "description": "A blockchain testcoin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liangpeili/testcoin.git"
+  },
+  "author": "liangpeili",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liangpeili/testcoin/issues"
+  },
+  "homepage": "https://github.com/liangpeili/testcoin#readme",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1"
+  }
+}
