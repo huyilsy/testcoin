@@ -23,14 +23,6 @@ class Block {
     console.log("BLOCK MINED: " + this.hash);
   }
 
-  addNewTransaction(sender, recipient, amount) {
-    this.transactions.push({
-      sender,
-      recipient,
-      amount
-    })
-  }
-
   getTransactions() {
     return this.transactions;
   }
@@ -40,12 +32,25 @@ class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.difficulty = 3;
+    this.currentTransactions = [];
+  }
+
+  addNewTransaction(sender, recipient, amount) {
+    this.currentTransactions.push({
+      sender,
+      recipient,
+      amount
+    })
   }
 
   createGenesisBlock() {
     const genesisBlock = new Block(0, "01/10/2017");
     genesisBlock.previousHash = '0';
-    genesisBlock.addNewTransaction('Leo', 'Janice', 520);
+    genesisBlock.transactions.push({
+      sender: 'Leo',
+      recipient: 'Janice',
+      amount: 520
+    })
     return genesisBlock;
   }
 
