@@ -1,12 +1,15 @@
 const express = require('express');
 const uuidv4 = require('uuid/v4');
 const Blockchain = require('./blockchain').Blockchain;
+const Block = require('./blockchain').Block;
 const fs = require('fs');
+const bodyParser = require("body-parser");
 
 const port = process.env.PORT || 3000;
 const app = express();
 const nodeIdentifier = uuidv4();
 const testCoin = new Blockchain();
+const jsonParser = bodyParser.json();
 
 app.use((req, res, next) => {
   var now = new Date().toString();
@@ -19,11 +22,24 @@ app.use((req, res, next) => {
 })
 
 app.get('/mine', (req, res) => {
-  res.send("We'll mine a new block.");
+  const latestBlockIndex = testCoin.chain.length;
+  const newBlock = new Block(latestBlockIndex, new Date().toString());
+  newBlock.transactions = testCoin.currentTransactions;
+  // Get a reward for mining the new block
+  newBlock.transactions.unshift({
+    sender: '0',
+    recipient: nodeIdentifier,
+    amount: 50
+  })
+  testCoin.addBlock(newBlock);
+  testCoin.currentTransactions = [];
+  res.send(`Mined new block ${JSON.stringify(newBlock, undefined, 2)}`);
 });
 
-app.post('/transactions/new', (req, res) => {
-  res.send("We'll add a new transaction.")
+app.post('/transactions/new', jsonParser, (req, res) => {
+  const newTransaction = req.body;
+  testCoin.addNewTransaction(newTransaction)
+  res.send(`The transaction ${JSON.stringify(newTransaction)} is successfully added to the blockchain.`);
 });
 
 app.get('/chain', (req, res) => {
