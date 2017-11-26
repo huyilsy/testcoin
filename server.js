@@ -50,6 +50,36 @@ app.get('/chain', (req, res) => {
   res.send(response);
 })
 
+app.post('/nodes/register', jsonParser, (req, res) => {
+  const nodes = req.body.nodes;
+  if (nodes === null) {
+    res.status(400).send('Error: Please supply a valid list of nodes.')
+  }
+  for (let node of nodes) {
+    console.log('node', node)
+    testCoin.registerNode(node);
+  }
+  const response = {
+    message: 'New nodes have been added',
+    totalNodes: Array.from(testCoin.nodes)
+  }
+  res.send(response)
+})
+
+app.get('/nodes/resolve', async (req, res) => {
+  const replaced = await testCoin.resolveConflicts();
+  console.log('replaced', replaced)
+  let response = {
+    'message': 'Our chain is authoritative',
+    'new_chain': testCoin.chain
+  }
+
+  if (replaced) {
+    response.message = 'Our chain was replaced';
+  }
+  res.send(response);
+})
+
 app.listen(port, () => {
   console.log(`Server is up on port ${port}`);
 });
