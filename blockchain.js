@@ -1,4 +1,6 @@
 const SHA256 = require('crypto-js/sha256');
+const URLparse = require('urlparse');
+const axios = require('axios');
 
 class Block {
   constructor(index, timestamp) {
@@ -33,6 +35,7 @@ class Blockchain {
     this.chain = [this.createGenesisBlock()];
     this.difficulty = 3;
     this.currentTransactions = [];
+    this.nodes = new Set();
   }
 
   addNewTransaction(sender, recipient, amount) {
@@ -64,12 +67,13 @@ class Blockchain {
     this.chain.push(newBlock);
   }
 
-  isChainValid() {
-    for (let i = 1; i < this.chain.length; i++){
-      const currentBlock = this.chain[i];
-      const previousBlock = this.chain[i - 1];
-
-      if(currentBlock.hash !== currentBlock.calculateHash()){
+  isChainValid(chain) {
+    for (let i = 1; i < chain.length; i++){
+      console.log('i', chain[i])
+      const currentBlock = chain[i];
+      const previousBlock = chain[i-1];
+      SHA256(chain[i].index + chain[i].previousHash + chain[i].timestamp + JSON.stringify(chain[i].transactions) + chain[i].nonce).toString()
+      if(currentBlock.hash !== SHA256(chain[i].index + chain[i].previousHash + chain[i].timestamp + JSON.stringify(chain[i].transactions) + chain[i].nonce).toString()){
         return false;
       }
 
@@ -78,6 +82,31 @@ class Blockchain {
       }
     }
     return true;
+  }
+
+  registerNode(address) {
+    const parsedURL = URLparse(address);
+    this.nodes.add(`${parsedURL.host}:${parsedURL.port}`);
+  }
+
+  async resolveConflicts() {
+    const neighbours = this.nodes;
+    let maxLength = this.chain.length;
+    for (let node of neighbours) {
+      const response = await axios.get(`http://${node}/chain`)
+
+      if (response.status === 200) {
+        const chain = response.data.chain;
+        const length = response.data.length;
+        console.log('chain', chain)
+        if ( length > maxLength && this.isChainValid(chain) ) {
+          maxLength = length;
+          this.chain = chain;
+          return true
+        }
+      }
+      return false 
+    }
   }
 }
 
